@@ -5,7 +5,8 @@ import csv
 import datetime
 from pytz import timezone
 
-from influxdb import InfluxDBClient
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import SYNCHRONOUS, WriteOptions
 from influxdb.exceptions import InfluxDBClientError
 
 epoch_naive = datetime.datetime.utcfromtimestamp(0)
@@ -46,21 +47,17 @@ def isinteger(value):
             return False
 
 
-def loadCsv(inputfilename, servername, user, password, dbname, metric, 
+def loadCsv(inputfilename, servername, dbname, metric, 
     timecolumn, timeformat, tagcolumns, fieldcolumns, usegzip, 
-    delimiter, batchsize, create, datatimezone, usessl, force):
+    delimiter, batchsize, create, datatimezone, usessl, force, token, org, bucket):
 
-    host = servername[0:servername.rfind(':')]
-    port = int(servername[servername.rfind(':')+1:])
-    client = InfluxDBClient(host, port, user, password, dbname, ssl=usessl)
+    client = InfluxDBClient(servername, token=args.token, org=args.org, ssl=args.ssl)
 
     if(create == True):
         print('Deleting database %s'%dbname)
         client.drop_database(dbname)
         print('Creating database %s'%dbname)
         client.create_database(dbname)
-
-    client.switch_user(user, password)
 
     # format tags and fields
     if tagcolumns:
@@ -114,10 +111,12 @@ def loadCsv(inputfilename, servername, user, password, dbname, metric,
                 print('Read %d lines'%count)
                 print('Inserting %d datapoints...'%(len(datapoints)))
 
-                try: 
-                    response = client.write_points(datapoints)
-                    print("Wrote %d points, up to %s, response: %s" % (len(datapoints), datetime_local, response))
-                except InfluxDBClientError as e:
+                try:
+                    write_api = client.write_api(write_options=SYNCHRONOUS)
+                    write_api.write(bucket=bucket, record=datapoints)
+                    write_api.close()
+                    print("Wrote %d points, up to %s" % (len(datapoints), datetime_local))
+                except ApiException as e:
                     print('Problem inserting points for current batch')
                     
                     # If force is False, raise Exception
@@ -128,20 +127,21 @@ def loadCsv(inputfilename, servername, user, password, dbname, metric,
                     print('Ignoring and moving to next batch')
 
                 datapoints = []
-            
 
     # write rest
     if len(datapoints) > 0:
         print('Read %d lines'%count)
         print('Inserting %d datapoints...'%(len(datapoints)))
 
-        try: 
-            response = client.write_points(datapoints)
-            print("Wrote %d, response: %s" % (len(datapoints), response))
-        except InfluxDBClientError as e:
+        try:
+            write_api = client.write_api(write_options=SYNCHRONOUS)
+            write_api.write(bucket=bucket, record=datapoints)
+            write_api.close()
+            print("Wrote %d points" % (len(datapoints)))
+        except ApiException as e:
             print('Problem inserting points for current batch')
             raise e 
-            
+
     print('Done')
     
     
@@ -193,14 +193,24 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--gzip', action='store_true', default=False,
                         help='Compress before sending to influxdb.')
 
-    parser.add_argument('-b', '--batchsize', type=int, default=5000,
-                        help='Batch size. Default: 5000.')
+    parser.add_argument('-b', '--batchsize', type=int, default=10000,
+                        help='Batch size. Default: 10000.')
 
     parser.add_argument('-f', '--force', action='store_true', default=False,
                         help='Program will ignore any write issues with problematic batches and attempt to write data to client for all other batches.')
+						
+    parser.add_argument('--token', nargs='?', required=True, 
+						help='InfluxDB API token.')
+
+    parser.add_argument('--org', nargs='?', required=True, 
+						help='Organization name.')
+
+    parser.add_argument('--bucket', nargs='?', required=True, 
+						help='Bucket name.')
+
 
     args = parser.parse_args()
-    loadCsv(args.input, args.server, args.user, args.password, args.dbname, 
+    loadCsv(args.input, args.server, args.dbname, 
         args.metricname, args.timecolumn, args.timeformat, args.tagcolumns, 
         args.fieldcolumns, args.gzip, args.delimiter, args.batchsize, args.create, 
-        args.timezone, args.ssl, args.force)
+        args.timezone, args.ssl, args.force, args.token, args.org, args.bucket)
