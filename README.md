@@ -76,7 +76,7 @@ The following command will insert the file into a influxdb database:
 ```python csv-to-influxdb.py --dbname test --input data.csv --tagcolumns computer --fieldcolumns value```
 
 
-## Another Example with another csv, exported through the influx cli on the influx host: 
+## Example2 with another csv, exported through the influx cli on the influx host: 
 
 ```influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv```
 
