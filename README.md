@@ -78,7 +78,7 @@ The following command will insert the file into a influxdb database:
 
 ## Another Example with another csv, exported through the influx cli on the influx host: 
 
-influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv
+```influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv
 
 The csv looks like: 
 
