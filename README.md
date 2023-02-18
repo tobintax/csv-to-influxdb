@@ -78,7 +78,7 @@ The following command will insert the file into a influxdb database:
 
 ## Another Example with another csv, exported through the influx cli on the influx host: 
 
-```influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv
+```influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv```
 
 The csv looks like: 
 ```
@@ -91,4 +91,4 @@ Current_AC_Phase_1,2017-03-31T18:00:00Z,0
 
 The following command will insert the file "Current_AC_Phase_1.csv" to Server "192.168.3.240" on Port "8087" which holds the dbname "historisch" with token "xxxxxxx" and the org "test", bucket "historisch", metricname "Current_AC_Phase_1", fieldcolumn "Current_AC_Phase_1"
 
-```python csv-to-influx.py -i Current_AC_Phase_1.csv -s 192.168.3.240:8087 --dbname historisch --token "xxxxxxxxxxxxxxxxxx" --org test --bucket historisch -m Current_AC_Phase_1 --fieldcolumns Current_AC_Phase_1 -tc time -tf "%Y-%m-%dT%H:%M:%SZ" -g
+```python csv-to-influx.py -i Current_AC_Phase_1.csv -s 192.168.3.240:8087 --dbname historisch --token "xxxxxxxxxxxxxxxxxx" --org test --bucket historisch -m Current_AC_Phase_1 --fieldcolumns Current_AC_Phase_1 -tc time -tf "%Y-%m-%dT%H:%M:%SZ" -g```
