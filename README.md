@@ -81,7 +81,6 @@ The following command will insert the file into a influxdb database:
 ```influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv
 
 The csv looks like: 
-
 ```
 name,time,Current_AC_Phase_1
 Current_AC_Phase_1,2017-03-31T17:40:00Z,0.05
