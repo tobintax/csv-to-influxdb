@@ -6,12 +6,12 @@ To create a new database, specify the parameter ```--create```. This will drop a
 ## Usage
 
 ```
-usage: csv-to-influxdb.py [-h] -i [INPUT] [-d [DELIMITER]] [-s [SERVER]]
-                          [--ssl] [-u [USER]] [-p [PASSWORD]] --dbname
-                          [DBNAME] [--create] [-m [METRICNAME]]
-                          [-tc [TIMECOLUMN]] [-tf [TIMEFORMAT]] [-tz TIMEZONE]
-                          [--fieldcolumns [FIELDCOLUMNS]]
-                          [--tagcolumns [TAGCOLUMNS]] [-g] [-b BATCHSIZE]
+usage: csv-to-influx.py [-h] -i [INPUT] [-d [DELIMITER]] [-s [SERVER]] [--ssl]
+                        --dbname [DBNAME] [--create] [-m [METRICNAME]]
+                        [-tc [TIMECOLUMN]] [-tf [TIMEFORMAT]] [-tz TIMEZONE]
+                        [--fieldcolumns [FIELDCOLUMNS]]
+                        [--tagcolumns [TAGCOLUMNS]] [-g] [-b BATCHSIZE] [-f]
+                        --token [TOKEN] --org [ORG] --bucket [BUCKET]
 
 Csv to influxdb.
 
@@ -47,7 +47,11 @@ optional arguments:
                         comma, e.g.: host,data_center. Default: host
   -g, --gzip            Compress before sending to influxdb.
   -b BATCHSIZE, --batchsize BATCHSIZE
-                        Batch size. Default: 5000.
+                        Batch size. Default: 10000.
+                        
+  --token [TOKEN]       InfluxDB API token.
+  --org [ORG]           Organization name.
+  --bucket [BUCKET]     Bucket name.
 
 ```
 
@@ -70,3 +74,22 @@ timestamp,value,computer
 The following command will insert the file into a influxdb database:
 
 ```python csv-to-influxdb.py --dbname test --input data.csv --tagcolumns computer --fieldcolumns value```
+
+
+## Another Example with another csv, exported through the influx cli on the influx host: 
+
+influx -precision rfc3339 -database 'historisch' -execute 'SELECT * from Current_AC_Phase_1' -format csv >Current_AC_Phase_1.csv
+
+The csv looks like: 
+
+```
+name,time,Current_AC_Phase_1
+Current_AC_Phase_1,2017-03-31T17:40:00Z,0.05
+Current_AC_Phase_1,2017-03-31T17:45:00Z,0.15
+Current_AC_Phase_1,2017-03-31T17:55:00Z,0
+Current_AC_Phase_1,2017-03-31T18:00:00Z,0
+```
+
+The following command will insert the file "Current_AC_Phase_1.csv" to Server "192.168.3.240" on Port "8087" which holds the dbname "historisch" with token "xxxxxxx" and the org "test", bucket "historisch", metricname "Current_AC_Phase_1", fieldcolumn "Current_AC_Phase_1"
+
+```python csv-to-influx.py -i Current_AC_Phase_1.csv -s 192.168.3.240:8087 --dbname historisch --token "xxxxxxxxxxxxxxxxxx" --org test --bucket historisch -m Current_AC_Phase_1 --fieldcolumns Current_AC_Phase_1 -tc time -tf "%Y-%m-%dT%H:%M:%SZ" -g
