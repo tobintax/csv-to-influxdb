@@ -1,5 +1,5 @@
 # csv-to-influxdb
-Simple python script that inserts data points read from a csv file into a influxdb database.
+Simple python script that inserts data points read from a csv file into a influxdb 2.x database.
 
 To create a new database, specify the parameter ```--create```. This will drop any database with a name equal to the one supplied with ```--dbname```.
 
